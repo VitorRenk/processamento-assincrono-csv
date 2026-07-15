@@ -1,7 +1,65 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql" url = env("DATABASE_URL") }
-enum JobStatus { queued processing completed failed }
-model User { id String @id @default(cuid()) email String @unique passwordHash String createdAt DateTime @default(now()) jobs Job[] }
-model Job { id String @id @default(cuid()) userId String sourceKey String sourceName String status JobStatus @default(queued) error String? attempts Int @default(0) createdAt DateTime @default(now()) updatedAt DateTime @updatedAt user User @relation(fields:[userId], references:[id]) result JobResult? files ReportFile[] }
-model JobResult { id String @id @default(cuid()) jobId String @unique rows Int validRows Int invalidRows Int revenue Decimal @db.Decimal(16,2) units Int average Decimal @db.Decimal(16,2) ranking Json job Job @relation(fields:[jobId], references:[id]) }
-model ReportFile { id String @id @default(cuid()) jobId String format String objectKey String createdAt DateTime @default(now()) job Job @relation(fields:[jobId], references:[id]) @@unique([jobId, format]) }
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum JobStatus {
+  queued
+  processing
+  completed
+  failed
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  jobs         Job[]
+}
+
+model Job {
+  id         String    @id @default(cuid())
+  userId     String
+  sourceKey  String
+  sourceName String
+  status     JobStatus @default(queued)
+  error      String?
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user   User         @relation(fields: [userId], references: [id])
+  result JobResult?
+  files  ReportFile[]
+}
+
+model JobResult {
+  id          String   @id @default(cuid())
+  jobId       String   @unique
+  rows        Int
+  validRows   Int
+  invalidRows Int
+  revenue     Decimal  @db.Decimal(16, 2)
+  units       Int
+  average     Decimal  @db.Decimal(16, 2)
+  ranking     Json
+
+  job Job @relation(fields: [jobId], references: [id])
+}
+
+model ReportFile {
+  id        String   @id @default(cuid())
+  jobId     String
+  format    String
+  objectKey String
+  createdAt DateTime @default(now())
+
+  job Job @relation(fields: [jobId], references: [id])
+
+  @@unique([jobId, format])
+}
