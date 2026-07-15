@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FluxoCSV | Relatórios de vendas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <nav>
+        <a class="brand" href="#">fluxo<span>csv</span></a>
+        <div class="nav-status"><i></i> Processamento disponível</div>
+      </nav>
+
+      <section class="hero">
+        <div>
+          <p class="eyebrow">PROCESSAMENTO ASSÍNCRONO DE DADOS</p>
+          <h1>Do CSV bruto ao<br /><em>insight pronto.</em></h1>
+          <p class="intro">
+            Envie sua base de vendas. Nós validamos, processamos e entregamos um
+            relatório claro para a sua tomada de decisão.
+          </p>
+        </div>
+        <div class="hero-mark" aria-hidden="true"><span>↗</span><b>CSV</b></div>
+      </section>
+
+      <section class="workspace">
+        <div class="steps" aria-label="Etapas do processamento">
+          <div class="step active"><span>01</span><b>Enviar arquivo</b></div>
+          <div class="step"><span>02</span><b>Processar dados</b></div>
+          <div class="step"><span>03</span><b>Ver relatório</b></div>
+        </div>
+
+        <div id="upload-panel" class="panel upload-panel">
+          <label id="drop-zone" class="drop-zone" for="file-input">
+            <input id="file-input" type="file" accept=".csv,text/csv" />
+            <div class="upload-icon">↑</div>
+            <h2>Solte seu arquivo CSV aqui</h2>
+            <p>ou <strong>selecione do seu computador</strong></p>
+            <small>Arquivos .CSV até 100 MB</small>
+          </label>
+          <div class="format-note">
+            <b>Formato esperado</b><span>produto, quantidade, valor</span
+            ><span
+              >Também reconhecemos: item, vendas, preço, total e receita.</span
+            >
+          </div>
+        </div>
+
+        <div id="processing-panel" class="panel processing-panel hidden">
+          <div class="file-line">
+            <div class="file-badge">CSV</div>
+            <div>
+              <b id="file-name">vendas.csv</b
+              ><small id="file-meta">Preparando arquivo...</small>
+            </div>
+            <button id="cancel-btn" class="text-button">Cancelar</button>
+          </div>
+          <div class="progress-header">
+            <b id="progress-label">Validando estrutura</b
+            ><span id="progress-number">0%</span>
+          </div>
+          <div class="progress-track"><div id="progress-bar"></div></div>
+          <p id="progress-description">
+            Lendo cabeçalhos e verificando a consistência dos dados.
+          </p>
+          <div class="processing-list">
+            <span id="check-validate">○ Validar campos obrigatórios</span
+            ><span id="check-calc">○ Calcular indicadores</span
+            ><span id="check-report">○ Gerar relatório</span>
+          </div>
+        </div>
+
+        <section id="report-panel" class="report hidden">
+          <div class="report-head">
+            <div>
+              <p class="eyebrow">RELATÓRIO CONCLUÍDO</p>
+              <h2>Resumo de vendas</h2>
+              <p id="report-subtitle">Resultado do arquivo processado.</p>
+            </div>
+            <div class="report-actions">
+              <button id="download-csv" class="button secondary">
+                Baixar CSV</button
+              ><button id="download-html" class="button">
+                Baixar relatório
+              </button>
+            </div>
+          </div>
+          <div class="metrics">
+            <article>
+              <span>FATURAMENTO TOTAL</span
+              ><strong id="total-revenue">R$ 0,00</strong
+              ><small id="valid-rows">0 registros válidos</small>
+            </article>
+            <article>
+              <span>TICKET MÉDIO</span
+              ><strong id="average-ticket">R$ 0,00</strong
+              ><small>por registro</small>
+            </article>
+            <article>
+              <span>ITENS VENDIDOS</span><strong id="total-items">0</strong
+              ><small>unidades no período</small>
+            </article>
+            <article>
+              <span>PRODUTO LÍDER</span><strong id="top-product">—</strong
+              ><small id="top-product-detail">aguardando dados</small>
+            </article>
+          </div>
+          <div class="report-grid">
+            <article class="ranking">
+              <div class="card-title">
+                <h3>Produtos mais vendidos</h3>
+                <span>POR FATURAMENTO</span>
+              </div>
+              <ol id="ranking-list"></ol>
+            </article>
+            <article class="validation">
+              <div class="card-title">
+                <h3>Qualidade dos dados</h3>
+                <span>VALIDAÇÃO</span>
+              </div>
+              <div class="quality">
+                <div class="quality-ring">
+                  <b id="quality-score">100</b><span>%</span>
+                </div>
+                <p>
+                  <b id="quality-title">Base consistente</b><br /><span
+                    id="quality-description"
+                    >Nenhuma inconsistência foi encontrada.</span
+                  >
+                </p>
+              </div>
+              <div class="issues">
+                <span>Registros processados <b id="processed-rows">0</b></span
+                ><span>Registros ignorados <b id="invalid-rows">0</b></span>
+              </div>
+            </article>
+          </div>
+          <button id="new-file" class="new-file">
+            + Processar outro arquivo
+          </button>
+        </section>
+      </section>
+    </main>
+    <footer>FLUXOCSV · dados processados localmente no seu navegador</footer>
+    <script src="app.js"></script>
+  </body>
+</html>

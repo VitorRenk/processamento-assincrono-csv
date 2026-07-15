@@ -1,0 +1,2 @@
+import {describe, expect, it} from 'vitest'; import {analyseCsv} from '../src/csv.js';
+describe('analyseCsv', () => { it('aceita ponto e vírgula e moeda brasileira', () => { const r = analyseCsv('produto;qtd;receita\nCaneta;2;10,50\nCaderno;1;20,00'); expect(r.revenue).toBe(30.5); expect(r.units).toBe(3); }); it('rejeita cabeçalhos incompletos', () => expect(() => analyseCsv('nome;qtd\nA;1')).toThrow()); });

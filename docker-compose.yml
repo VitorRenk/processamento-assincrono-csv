@@ -1,0 +1,85 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: fluxocsv
+      POSTGRES_PASSWORD: fluxocsv_dev
+      POSTGRES_DB: fluxocsv
+    ports: ["5432:5432"]
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fluxocsv -d fluxocsv"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    volumes: [redis_data:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports: ["5672:5672", "15672:15672"]
+    environment:
+      RABBITMQ_DEFAULT_USER: fluxocsv
+      RABBITMQ_DEFAULT_PASS: fluxocsv_dev
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: fluxocsv
+      MINIO_ROOT_PASSWORD: fluxocsv_dev_secret
+    ports: ["9000:9000", "9001:9001"]
+    volumes: [minio_data:/data]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+  api:
+    build: .
+    command: sh -c "npx prisma db push --schema apps/api/prisma/schema.prisma && npm run dev --workspace=@fluxocsv/api"
+    environment: &backend_env
+      DATABASE_URL: postgresql://fluxocsv:fluxocsv_dev@postgres:5432/fluxocsv?schema=public
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://fluxocsv:fluxocsv_dev@rabbitmq:5672
+      MINIO_ENDPOINT: minio
+      MINIO_PUBLIC_ENDPOINT: localhost
+      MINIO_PORT: "9000"
+      MINIO_ACCESS_KEY: fluxocsv
+      MINIO_SECRET_KEY: fluxocsv_dev_secret
+      JWT_SECRET: local-development-secret-change-me
+      PORT: "3000"
+      CORS_ORIGIN: http://localhost:5173
+    ports: ["3000:3000"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      rabbitmq: {condition: service_healthy}
+      minio: {condition: service_healthy}
+  worker:
+    build: .
+    command: npm run dev --workspace=@fluxocsv/worker
+    environment: *backend_env
+    depends_on:
+      api: {condition: service_started}
+  web:
+    build: .
+    command: npm run dev --workspace=@fluxocsv/web -- --host 0.0.0.0
+    environment:
+      VITE_API_URL: http://localhost:3000
+    ports: ["5173:5173"]
+    depends_on: [api]
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
