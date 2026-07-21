@@ -1,2 +1,3 @@
-import {describe, expect, it} from 'vitest'; import {analyseCsv} from '../src/csv.js';
+import {describe, expect, it} from 'vitest'; import {analyseCsv, analyseCsvStream} from '../src/csv.js';
 describe('analyseCsv', () => { it('aceita ponto e vírgula e moeda brasileira', () => { const r = analyseCsv('produto;qtd;receita\nCaneta;2;10,50\nCaderno;1;20,00'); expect(r.revenue).toBe(30.5); expect(r.units).toBe(3); }); it('rejeita cabeçalhos incompletos', () => expect(() => analyseCsv('nome;qtd\nA;1')).toThrow()); });
+describe('analyseCsvStream', () => { it('processa linhas e campos entre aspas divididos em blocos', async () => { async function* chunks() { yield 'produto,quantidade,valor\n"Caderno'; yield ' universitário",2,29.90\nCaneta,4,9.50'; } const r = await analyseCsvStream(chunks()); expect(r.revenue).toBe(39.4); expect(r.ranking[0].name).toBe('Caderno universitário'); }); });

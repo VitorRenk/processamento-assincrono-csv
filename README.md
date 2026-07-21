@@ -28,10 +28,18 @@ flowchart LR
     FE -->|Upload por URL pré-assinada| MINIO[(MinIO)]
     API -->|Cria job| PG[(PostgreSQL)]
     API -->|Publica job| MQ{{RabbitMQ}}
-    MQ --> W[Worker de processamento]
-    W -->|Lê CSV e salva relatórios| MINIO
-    W -->|Status e métricas| PG
-    W -->|Progresso| REDIS[(Redis)]
+    MQ --> W1[Worker 1]
+    MQ --> W2[Worker 2]
+    MQ --> WN[Worker N]
+    W1 -->|Lê CSV e salva relatórios| MINIO
+    W2 -->|Lê CSV e salva relatórios| MINIO
+    WN -->|Lê CSV e salva relatórios| MINIO
+    W1 -->|Status e métricas| PG
+    W2 -->|Status e métricas| PG
+    WN -->|Status e métricas| PG
+    W1 -->|Progresso| REDIS[(Redis)]
+    W2 -->|Progresso| REDIS
+    WN -->|Progresso| REDIS
     REDIS -->|SSE| API
     API -->|Atualização em tempo real| FE
 ```
@@ -72,7 +80,7 @@ flowchart LR
 ### Pré-requisitos
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) em execução.
-- Portas `3000`, `5173`, `5432`, `5672`, `6379`, `9000`, `9001` e `15672` disponíveis.
+- Portas `3003`, `5173`, `5432`, `5672`, `9000`, `9001` e `15672` disponíveis.
 
 Na raiz do projeto, execute:
 
@@ -82,12 +90,30 @@ docker compose up --build
 
 Depois, acesse `http://localhost:5173`, crie uma conta e envie um arquivo CSV. Para encerrar os serviços, use `docker compose down`.
 
+### Escalonamento de workers
+
+Por padrão, o ambiente inicia com **três workers**. Cada réplica recebe apenas um job por vez (`prefetch(1)`), o que evita que arquivos grandes concorram pela memória do mesmo processo.
+
+Para definir uma capacidade padrão diferente, crie um arquivo `.env` na raiz do projeto:
+
+```env
+WORKER_REPLICAS=5
+```
+
+Em seguida, recrie o ambiente com `docker compose up -d --build`. Para ajustar a quantidade imediatamente, sem alterar o arquivo `.env`, use:
+
+```bash
+docker compose up -d --scale worker=5
+```
+
+Confira as réplicas ativas com `docker compose ps`. A fila e os consumidores podem ser acompanhados em `http://localhost:15672`, na seção **Queues and Streams**.
+
 ### Serviços locais
 
 | Serviço | Endereço | Credenciais de desenvolvimento |
 | --- | --- | --- |
 | Frontend | `http://localhost:5173` | Crie uma conta pela interface. |
-| API | `http://localhost:3000/health` | — |
+| API | `http://localhost:3003/health` | — |
 | MinIO Console | `http://localhost:9001` | `fluxocsv` / `fluxocsv_dev_secret` |
 | RabbitMQ Management | `http://localhost:15672` | `fluxocsv` / `fluxocsv_dev` |
 | PostgreSQL | `localhost:5432` | `fluxocsv` / `fluxocsv_dev` |
@@ -117,6 +143,7 @@ Linhas sem produto ou com valor inválido/zero são ignoradas durante a agregaç
 - **Estado transitório no Redis:** progresso é efêmero e publicado como evento; resultados permanentes ficam no PostgreSQL.
 - **SSE para atualizações:** o caso de uso é unidirecional — servidor para cliente — e SSE reduz a complexidade operacional em comparação a WebSockets.
 - **Relatórios no MinIO:** arquivos binários permanecem fora do banco relacional; o PostgreSQL mantém somente metadados e resultados analíticos.
+- **Leitura incremental de CSV:** o worker consome o stream do MinIO em blocos, preservando campos entre blocos e evitando carregar o arquivo inteiro na memória.
 
 ## Próximos passos
 

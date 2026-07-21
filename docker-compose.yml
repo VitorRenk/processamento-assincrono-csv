@@ -14,7 +14,6 @@ services:
       retries: 15
   redis:
     image: redis:7-alpine
-    ports: ["6379:6379"]
     volumes: [redis_data:/data]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -60,7 +59,7 @@ services:
       JWT_SECRET: local-development-secret-change-me
       PORT: "3000"
       CORS_ORIGIN: http://localhost:5173
-    ports: ["3000:3000"]
+    ports: ["3003:3000"]
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
@@ -72,11 +71,13 @@ services:
     environment: *backend_env
     depends_on:
       api: {condition: service_started}
+    deploy:
+      replicas: ${WORKER_REPLICAS:-3}
   web:
     build: .
     command: npm run dev --workspace=@fluxocsv/web -- --host 0.0.0.0
     environment:
-      VITE_API_URL: http://localhost:3000
+      VITE_API_URL: http://localhost:3003
     ports: ["5173:5173"]
     depends_on: [api]
 volumes:

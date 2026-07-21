@@ -7,3 +7,4 @@ COPY apps/web/package.json apps/web/package.json
 COPY packages/shared/package.json packages/shared/package.json
 RUN npm install
 COPY . .
+RUN npx prisma generate --schema apps/api/prisma/schema.prisma
