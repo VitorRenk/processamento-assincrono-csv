@@ -54,6 +54,7 @@ services:
       MINIO_ENDPOINT: minio
       MINIO_PUBLIC_ENDPOINT: localhost
       MINIO_PORT: "9000"
+      MINIO_REGION: us-east-1
       MINIO_ACCESS_KEY: fluxocsv
       MINIO_SECRET_KEY: fluxocsv_dev_secret
       JWT_SECRET: local-development-secret-change-me
