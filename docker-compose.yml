@@ -71,7 +71,10 @@ services:
     command: npm run dev --workspace=@fluxocsv/worker
     environment: *backend_env
     depends_on:
-      api: {condition: service_started}
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      rabbitmq: {condition: service_healthy}
+      minio: {condition: service_healthy}
     deploy:
       replicas: ${WORKER_REPLICAS:-3}
   web:

@@ -2,7 +2,7 @@
   "name": "@fluxocsv/shared",
   "version": "1.0.0",
   "type": "module",
-  "exports": {"./csv": "./src/csv.ts", "./report": "./src/report.ts"},
+  "exports": {"./csv": "./src/csv.ts", "./report": "./src/report.ts", "./queue": "./src/queue.ts"},
   "scripts": {"test": "vitest run"},
   "devDependencies": {"vitest": "^2.1.8"}
 }
